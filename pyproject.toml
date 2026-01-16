@@ -1,0 +1,41 @@
+[project]
+name = "ollama-cli-pro"
+version = "5.1.0"
+description = "Ollama modelleriyle terminalden etkileşim için gelişmiş CLI"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "Ollama CLI Pro Contributors" }
+]
+
+dependencies = [
+  "requests>=2.31",
+  "rich>=13.7",
+  "prompt-toolkit>=3.0",
+  "pydantic>=2.5",
+  "platformdirs>=4.0",
+  "pillow>=10.0",
+  "pyperclip>=1.9",
+  "cryptography>=42.0",
+]
+
+[project.scripts]
+ollama-chat = "ollama_cli.__main__:main"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.4",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ollama_cli*"]

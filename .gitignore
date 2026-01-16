@@ -1,0 +1,14 @@
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+dist/
+build/
+*.egg-info/
+*.log
+
+# User data
+config.json
+favorites.json

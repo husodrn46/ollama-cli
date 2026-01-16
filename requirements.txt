@@ -1,0 +1,8 @@
+requests>=2.31
+rich>=13.7
+prompt-toolkit>=3.0
+pydantic>=2.5
+platformdirs>=4.0
+pillow>=10.0
+pyperclip>=1.9
+cryptography>=42.0
