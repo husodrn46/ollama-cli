@@ -1,14 +1,61 @@
+# Python
 venv/
 .venv/
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
+.Python
+env/
+ENV/
+
+# Testing
 .pytest_cache/
 .coverage
+htmlcov/
+.tox/
+.nox/
+
+# Build
 dist/
 build/
 *.egg-info/
+*.egg
+.eggs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.spyderproject
+.spyproject
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
 *.log
 
-# User data
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Linting
+.ruff_cache/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# User data (hassas veriler)
 config.json
 favorites.json
+prompts.json
+
+# Jupyter
+.ipynb_checkpoints/
