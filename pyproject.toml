@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [
-  { name = "Huseyin", email = "husodrn46@gmail.com" }
+  { name = "Huseyin" }
 ]
 keywords = ["ollama", "cli", "llm", "chat", "terminal", "ai"]
 classifiers = [
