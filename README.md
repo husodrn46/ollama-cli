@@ -11,6 +11,28 @@ Ollama modelleri ile terminal uzerinden etkilesim kurmak icin gelistirilmis, zen
 
 Ollama CLI, yerel olarak çalışan büyük dil modelleriyle sohbet etmeyi kolaylaştıran, kullanıcı dostu ve güçlü bir araçtır. `rich` ve `prompt_toolkit` gibi kütüphaneler sayesinde modern ve interaktif bir terminal deneyimi sunar. Amacı, geliştiricilerin ve meraklıların Ollama'nın gücünü verimli bir şekilde komut satırından kullanabilmelerini sağlamaktır.
 
+## Quickstart (60 saniye)
+
+```bash
+# 1. Ollama kurulu ve çalışıyor olmalı (https://ollama.ai)
+ollama pull llama3.2
+
+# 2. CLI'ı kur
+pip install ollama-cli
+# veya
+pipx install ollama-cli
+
+# 3. Başlat ve sohbet et!
+ollama-chat
+```
+
+## Önkoşullar
+
+- **Ollama** kurulu ve çalışıyor olmalı → [ollama.ai](https://ollama.ai)
+- **Python 3.10+** gerekli
+- En az bir model indirilmiş olmalı (`ollama pull <model>`)
+- Uzak sunucu için: `OLLAMA_HOST=http://sunucu:11434` ayarlanabilir
+
 ## Demo
 
 ```
@@ -61,6 +83,28 @@ Bu kod:
 | 💾 Kaydet | `/save sohbet.json` | Sohbeti dışa aktar |
 | 📊 Benchmark | `/bench all` | Model performans testi |
 | 🔒 Güvenlik | `/security mask on` | Hassas veri maskeleme |
+
+## Kullanım Senaryoları
+
+| Senaryo | Nasıl? | Açıklama |
+|---------|--------|----------|
+| 🔄 **Model Karşılaştırma** | `/compare` | Aynı soruyu birden fazla modele sor, yanıtları karşılaştır |
+| 🖼️ **Görsel Soru-Cevap** | `/img foto.png Bu nedir?` | Vision modelle resim analizi yap |
+| 📊 **Performans Testi** | `/bench all` | Tüm modellerin hızını ölç ve karşılaştır |
+| 💾 **Sohbet Arşivi** | `/save` → `/sessions` | Sohbetleri kaydet, etiketle, sonra devam et |
+| 📝 **Hızlı Prompt** | `/prompts ozetle` | Hazır prompt kütüphanesinden kullan |
+
+## Top 10 Komut
+
+```
+/help     → Yardım           /model    → Model değiştir
+/save     → Kaydet           /load     → Yükle
+/img      → Resim gönder     /paste    → Panodan resim
+/compare  → Karşılaştır      /bench    → Benchmark
+/export   → Dışa aktar       /sessions → Oturumlar
+```
+
+> 💡 Tüm komutlar için: `/help` veya [docs/cheatsheet.md](docs/cheatsheet.md)
 
 ## Temel Özellikler
 
