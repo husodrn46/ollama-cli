@@ -157,8 +157,8 @@ def read_json(path: Path, logger) -> Optional[Dict[str, Any]]:
             return json.load(f)
     except FileNotFoundError:
         return None
-    except Exception:
-        logger.exception("Json okunamadi: %s", path)
+    except (json.JSONDecodeError, OSError) as exc:
+        logger.exception("Json okunamadi: %s - %s", path, exc)
         return None
 
 
@@ -167,8 +167,8 @@ def write_json(path: Path, data: Dict[str, Any], logger) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
-    except Exception:
-        logger.exception("Json yazilamadi: %s", path)
+    except OSError as exc:
+        logger.exception("Json yazilamadi: %s - %s", path, exc)
 
 
 def migrate_legacy_file(target: Path, legacy: Path, logger) -> None:
@@ -178,8 +178,8 @@ def migrate_legacy_file(target: Path, legacy: Path, logger) -> None:
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(legacy, target)
         logger.info("Legacy dosya tasindi: %s -> %s", legacy, target)
-    except Exception:
-        logger.exception("Legacy dosya tasinamadi: %s", legacy)
+    except OSError as exc:
+        logger.exception("Legacy dosya tasinamadi: %s - %s", legacy, exc)
 
 
 def ensure_default_prompts(paths: AppPaths, logger) -> None:
@@ -293,5 +293,5 @@ def migrate_history(paths: AppPaths, logger) -> None:
         paths.history_file.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(paths.legacy_history_file, paths.history_file)
         logger.info("Legacy gecmis tasindi: %s", paths.history_file)
-    except Exception:
-        logger.exception("Legacy gecmis tasinamadi")
+    except OSError as exc:
+        logger.exception("Legacy gecmis tasinamadi: %s", exc)

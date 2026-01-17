@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple
@@ -90,7 +91,7 @@ class ModelManager:
             return False
         try:
             ts = datetime.fromisoformat(fetched_at)
-        except Exception:
+        except ValueError:
             return False
         return (datetime.utcnow() - ts).total_seconds() < MODEL_CACHE_TTL_SECONDS
 
@@ -129,7 +130,7 @@ class ModelManager:
                 response.raise_for_status()
                 self.models = response.json().get("models", [])
                 return self.models
-            except Exception as exc:
+            except requests.RequestException as exc:
                 self.logger.exception("Model listesi alinmadi")
                 self.console.print(f"[red]Baglanti hatasi: {exc}[/]")
                 return []
@@ -151,7 +152,7 @@ class ModelManager:
             )
             response.raise_for_status()
             data = response.json()
-        except Exception:
+        except requests.RequestException:
             self.logger.exception("Model detaylari alinmadi: %s", model_name)
             return cached
 
@@ -369,7 +370,7 @@ class ModelManager:
                                 progress.update(task, completed=pct, description=status)
                             else:
                                 progress.update(task, description=status)
-                        except Exception:
+                        except (json.JSONDecodeError, KeyError):
                             continue
 
             self.console.print(
@@ -379,7 +380,7 @@ class ModelManager:
             self.get_models()
             return True
 
-        except Exception as exc:
+        except requests.RequestException as exc:
             self.logger.exception("Model indirilemedi: %s", model_name)
             self.console.print(f"[{self.theme['error']}]Hata: {exc}[/]\n")
             return False
@@ -417,7 +418,7 @@ class ModelManager:
             self.get_models()
             return True
 
-        except Exception as exc:
+        except requests.RequestException as exc:
             self.logger.exception("Model silinemedi: %s", model_name)
             self.console.print(f"[{self.theme['error']}]Hata: {exc}[/]\n")
             return False

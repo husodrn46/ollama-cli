@@ -338,7 +338,7 @@ class ChatEngine:
             data = response.json()
             summary = data.get("message", {}).get("content", "").strip()
             return summary or None
-        except Exception:
+        except requests.RequestException:
             self.logger.exception("Ozetleme istegi basarisiz")
             return None
 
@@ -430,7 +430,7 @@ class ChatEngine:
             if len(title) > 60:
                 title = title[:57] + "..."
             return title if title else None
-        except Exception:
+        except requests.RequestException:
             self.logger.debug("Başlık oluşturulamadı")
             return None
 
@@ -497,7 +497,7 @@ class ChatEngine:
         except KeyboardInterrupt:
             self.console.print(f"\n[{self.theme['accent']}]\u25fc Iptal[/]\n")
             return full_response if full_response else None
-        except Exception as exc:
+        except requests.RequestException as exc:
             self.logger.exception("Chat stream hatasi")
             self.console.print(f"\n[{self.theme['error']}]Hata: {exc}[/]\n")
             return None
@@ -544,7 +544,7 @@ class ChatEngine:
 
                         if data.get("done"):
                             break
-                    except Exception:
+                    except (json.JSONDecodeError, KeyError):
                         continue
             # Final update without TPS (show only markdown)
             live.update(Markdown(full_response, code_theme="monokai"))
@@ -614,7 +614,7 @@ class ChatEngine:
 
                     if data.get("done"):
                         break
-                except Exception:
+                except (json.JSONDecodeError, KeyError):
                     continue
 
         print()

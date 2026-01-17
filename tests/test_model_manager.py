@@ -1,6 +1,7 @@
 """Tests for model_manager module."""
 
 import pytest
+import requests
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch, Mock
 
@@ -388,7 +389,7 @@ class TestGetModels:
         mock_theme,
         paths,
     ):
-        mock_get.side_effect = Exception("Connection refused")
+        mock_get.side_effect = requests.RequestException("Connection refused")
 
         manager = ModelManager(
             config=mock_config,
@@ -457,7 +458,7 @@ class TestPullModel:
         mock_theme,
         paths,
     ):
-        mock_post.side_effect = Exception("Download failed")
+        mock_post.side_effect = requests.RequestException("Download failed")
 
         manager = ModelManager(
             config=mock_config,

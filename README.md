@@ -3,12 +3,64 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Tests](https://github.com/husodrn46/ollama-cli/actions/workflows/test.yml/badge.svg)](https://github.com/husodrn46/ollama-cli/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/husodrn46/ollama-cli/graph/badge.svg)](https://codecov.io/gh/husodrn46/ollama-cli)
 
 Ollama modelleri ile terminal uzerinden etkilesim kurmak icin gelistirilmis, zengin ozelliklere sahip bir komut satiri arayuzu (CLI).
 
 ## Proje Açıklaması ve Amacı
 
 Ollama CLI, yerel olarak çalışan büyük dil modelleriyle sohbet etmeyi kolaylaştıran, kullanıcı dostu ve güçlü bir araçtır. `rich` ve `prompt_toolkit` gibi kütüphaneler sayesinde modern ve interaktif bir terminal deneyimi sunar. Amacı, geliştiricilerin ve meraklıların Ollama'nın gücünü verimli bir şekilde komut satırından kullanabilmelerini sağlamaktır.
+
+## Demo
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║  ◉ OLLAMA CLI PRO v5.1                                       ║
+║  ⚡ http://localhost:11434  🎨 dark                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+Model: llama3.2 (3.2B) [vision] [context: 128K]
+✓ Sistem promptu yuklendi
+👁️ Vision model - /img ile resim gonder
+↑↓ gecmis • Tab tamamla • /help yardim • /q cikis
+─────────────────────────────────────────────────────────────────
+
+◉ SEN: Python ile basit bir web scraper yaz
+
+◉ LLAMA3.2
+─────────────────────────────────────────────────────────────────
+İşte basit bir web scraper örneği:
+
+```python
+import requests
+from bs4 import BeautifulSoup
+
+def scrape(url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    return soup.title.string
+
+print(scrape('https://example.com'))
+```
+
+Bu kod:
+1. `requests` ile sayfayı indirir
+2. `BeautifulSoup` ile parse eder
+3. Sayfa başlığını döndürür
+
+⏱ 2.3s  ◈ 156 token  ⚡ 67.8 t/s
+```
+
+### Özellik Gösterimi
+
+| Özellik | Komut | Açıklama |
+|---------|-------|----------|
+| 🎨 Temalar | `/theme ocean` | 4 farklı renk teması |
+| 📋 Favoriler | `/fav add kod "Kod yaz:"` | Hızlı prompt kısayolları |
+| 🖼️ Görsel | `/img foto.png` | Vision modellere resim gönder |
+| 💾 Kaydet | `/save sohbet.json` | Sohbeti dışa aktar |
+| 📊 Benchmark | `/bench all` | Model performans testi |
+| 🔒 Güvenlik | `/security mask on` | Hassas veri maskeleme |
 
 ## Temel Özellikler
 
