@@ -90,31 +90,31 @@ def generate_html_export(
         .header {{
             text-align: center;
             padding: 3rem 2rem;
-            background: linear-gradient(135deg, {theme['primary']}22, {theme['secondary']}22);
+            background: linear-gradient(135deg, {theme["primary"]}22, {theme["secondary"]}22);
             border-radius: 20px;
             margin-bottom: 2rem;
-            border: 1px solid {theme['primary']}44;
+            border: 1px solid {theme["primary"]}44;
         }}
         .header h1 {{
             font-size: 2rem;
-            background: linear-gradient(135deg, {theme['primary']}, {theme['secondary']});
+            background: linear-gradient(135deg, {theme["primary"]}, {theme["secondary"]});
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 0.5rem;
         }}
         .header .meta {{
-            color: {theme['muted']};
+            color: {theme["muted"]};
             font-size: 0.9rem;
         }}
         .header .model-badge {{
             display: inline-block;
-            background: {theme['primary']}33;
-            color: {theme['primary']};
+            background: {theme["primary"]}33;
+            color: {theme["primary"]};
             padding: 0.3rem 1rem;
             border-radius: 20px;
             font-size: 0.85rem;
             margin-top: 1rem;
-            border: 1px solid {theme['primary']}55;
+            border: 1px solid {theme["primary"]}55;
         }}
         .message {{
             margin-bottom: 1.5rem;
@@ -139,7 +139,7 @@ def generate_html_export(
             position: relative;
         }}
         .bubble-user {{
-            background: linear-gradient(135deg, {theme['user']}, {theme['user']}dd);
+            background: linear-gradient(135deg, {theme["user"]}, {theme["user"]}dd);
             border-bottom-right-radius: 5px;
             color: white;
         }}
@@ -183,17 +183,17 @@ def generate_html_export(
         .stat-value {{
             font-size: 1.5rem;
             font-weight: bold;
-            color: {theme['primary']};
+            color: {theme["primary"]};
         }}
         .stat-label {{
             font-size: 0.8rem;
-            color: {theme['muted']};
+            color: {theme["muted"]};
             text-transform: uppercase;
         }}
         .footer {{
             text-align: center;
             padding: 2rem;
-            color: {theme['muted']};
+            color: {theme["muted"]};
             font-size: 0.85rem;
         }}
         .code-container {{
@@ -203,9 +203,9 @@ def generate_html_export(
             position: absolute;
             top: 8px;
             right: 8px;
-            background: {theme['primary']}44;
-            border: 1px solid {theme['primary']}66;
-            color: {theme['primary']};
+            background: {theme["primary"]}44;
+            border: 1px solid {theme["primary"]}66;
+            color: {theme["primary"]};
             padding: 4px 8px;
             border-radius: 6px;
             cursor: pointer;
@@ -217,7 +217,7 @@ def generate_html_export(
             opacity: 1;
         }}
         .copy-btn:hover {{
-            background: {theme['primary']}66;
+            background: {theme["primary"]}66;
         }}
         .hljs {{
             background: transparent !important;

@@ -12,10 +12,9 @@ from typing import Dict, List, Optional
 import requests
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
-from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.history import FileHistory
-from rich.box import DOUBLE, ROUNDED
+from rich.box import ROUNDED
 from rich.console import Console
 from rich.live import Live
 from rich.markdown import Markdown
@@ -27,16 +26,14 @@ from rich.syntax import Syntax
 from rich.table import Table
 from rich.text import Text
 
-from .clipboard import copy_text, ClipboardTracker
+from .clipboard import ClipboardTracker
 from .templates import generate_html_export as _generate_html_template
-from .commands import Command, CommandRegistry, CommandHandlers, SmartCompleter
+from .commands import CommandRegistry, CommandHandlers, SmartCompleter
 from .logging_utils import set_log_level, setup_logging
-from .media import encode_image, paste_image_from_clipboard
-from .models import FavoritesModel, ProfileModel, TokenStats
+from .models import TokenStats
 from .security import (
     SecurityError,
     encrypt_text,
-    generate_key,
     get_encryption_key,
     mask_messages,
     mask_sensitive_text,
@@ -47,22 +44,17 @@ from .storage import (
     load_favorites,
     load_prompts,
     migrate_history,
-    read_json,
     resolve_paths,
-    save_config,
-    save_favorites,
-    write_json,
 )
 from .utils import (
     estimate_message_tokens,
     format_size,
     get_model_prompt,
-    is_vision_model,
 )
 
 # Refactored modules
-from .chat_engine import ChatEngine, PERSONAS, SUMMARY_PREFIX
-from .model_manager import ModelManager, MODEL_CACHE_TTL_SECONDS
+from .chat_engine import ChatEngine, SUMMARY_PREFIX
+from .model_manager import ModelManager
 from .ui_display import UIDisplay
 
 
@@ -1397,7 +1389,9 @@ class ChatApp:
                     if msg["role"] == "system":
                         continue
                     role = (
-                        "🧑 Sen" if msg["role"] == "user" else f"🤖 {model_short.upper()}"
+                        "🧑 Sen"
+                        if msg["role"] == "user"
+                        else f"🤖 {model_short.upper()}"
                     )
                     content_text = msg.get("content", "")
                     if isinstance(content_text, list):

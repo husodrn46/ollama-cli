@@ -16,14 +16,20 @@ def is_vision_model(model_name: str) -> bool:
     return any(p in name for p in patterns)
 
 
-def get_model_prompt(model_name: str, prompts: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+def get_model_prompt(
+    model_name: str, prompts: Dict[str, Dict[str, Any]]
+) -> Dict[str, Any]:
     model_base = model_name.split(":")[0].lower()
 
     for key, value in prompts.items():
         if key.startswith("_"):
             continue
         key_lower = key.lower()
-        if key_lower == model_base or key_lower in model_base or model_base in key_lower:
+        if (
+            key_lower == model_base
+            or key_lower in model_base
+            or model_base in key_lower
+        ):
             return value
 
     return prompts.get("_default", DEFAULT_PROMPT.model_dump(mode="json"))

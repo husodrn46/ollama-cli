@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Callable, Dict, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple
 
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.formatted_text import HTML

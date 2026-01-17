@@ -506,13 +506,13 @@ class UIDisplay:
 
     def _format_html_content(self, content: str) -> str:
         """Format content for HTML export with code highlighting.
-        
+
         Note: This method is kept for backward compatibility but the actual
         implementation is now in templates.py.
         """
         from .templates import format_html_content
-        return format_html_content(content)
 
+        return format_html_content(content)
 
     # ─────────────────────────────────────────────────────────────
     # Benchmark & Compare

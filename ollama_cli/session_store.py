@@ -76,7 +76,6 @@ class SessionStore:
         show_log: bool = True,
     ) -> SessionMeta:
         now = datetime.utcnow().isoformat()
-        new_session = session_id is None
         session_id = session_id or self._generate_session_id()
 
         if self.config.mask_sensitive:
@@ -203,8 +202,13 @@ class SessionStore:
         sessions.sort(key=lambda s: s.updated_at, reverse=True)
 
         cutoff = None
-        if self.config.session_retention_days and self.config.session_retention_days > 0:
-            cutoff = datetime.utcnow() - timedelta(days=self.config.session_retention_days)
+        if (
+            self.config.session_retention_days
+            and self.config.session_retention_days > 0
+        ):
+            cutoff = datetime.utcnow() - timedelta(
+                days=self.config.session_retention_days
+            )
 
         kept = []
         removed = []
@@ -217,7 +221,10 @@ class SessionStore:
                 continue
             kept.append(session)
 
-        if self.config.session_retention_count and self.config.session_retention_count > 0:
+        if (
+            self.config.session_retention_count
+            and self.config.session_retention_count > 0
+        ):
             if len(kept) > self.config.session_retention_count:
                 removed.extend(kept[self.config.session_retention_count :])
                 kept = kept[: self.config.session_retention_count]
@@ -248,7 +255,9 @@ class SessionStore:
         except Exception:
             self.logger.exception("Session index yazilamadi")
 
-    def _find_meta(self, index: Dict[str, Any], session_id: str) -> Optional[Dict[str, Any]]:
+    def _find_meta(
+        self, index: Dict[str, Any], session_id: str
+    ) -> Optional[Dict[str, Any]]:
         for item in index.get("sessions", []):
             if item.get("id") == session_id:
                 return item
