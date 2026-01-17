@@ -22,11 +22,6 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 
-[project.urls]
-Homepage = "https://github.com/husodrn46/ollama-cli"
-Repository = "https://github.com/husodrn46/ollama-cli"
-Issues = "https://github.com/husodrn46/ollama-cli/issues"
-
 dependencies = [
   "requests>=2.31",
   "rich>=13.7",
@@ -37,6 +32,11 @@ dependencies = [
   "pyperclip>=1.9",
   "cryptography>=42.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/husodrn46/ollama-cli"
+Repository = "https://github.com/husodrn46/ollama-cli"
+Issues = "https://github.com/husodrn46/ollama-cli/issues"
 
 [project.scripts]
 ollama-chat = "ollama_cli.__main__:main"
