@@ -1,9 +1,66 @@
 from __future__ import annotations
 
+import hashlib
 import io
 import subprocess
 import sys
 from typing import Optional, Tuple
+
+
+class ClipboardTracker:
+    """Track clipboard changes for monitoring feature."""
+
+    def __init__(self) -> None:
+        self._last_hash: Optional[str] = None
+        self._last_content: Optional[str] = None
+        self._last_type: Optional[str] = None  # "text" | "image"
+
+    def _hash(self, content: bytes) -> str:
+        """Generate MD5 hash of content."""
+        return hashlib.md5(content).hexdigest()
+
+    def check_change(self, logger) -> Optional[Tuple[str, object]]:
+        """Check if clipboard has changed. Returns (type, content) if changed."""
+        try:
+            # First check for image
+            img_bytes, _ = get_image_bytes(logger)
+            if img_bytes:
+                h = self._hash(img_bytes)
+                if h != self._last_hash:
+                    self._last_hash = h
+                    self._last_type = "image"
+                    return ("image", img_bytes)
+
+            # Then check for text
+            try:
+                import pyperclip
+
+                text = pyperclip.paste()
+            except ImportError:
+                return None
+            except Exception:
+                return None
+
+            if text:
+                h = self._hash(text.encode("utf-8"))
+                if h != self._last_hash:
+                    self._last_hash = h
+                    self._last_content = text
+                    self._last_type = "text"
+                    return ("text", text)
+        except Exception:
+            logger.debug("Clipboard kontrol hatası", exc_info=True)
+        return None
+
+    def get_last(self) -> Tuple[Optional[str], Optional[object]]:
+        """Get last clipboard type and content."""
+        return (self._last_type, self._last_content)
+
+    def reset(self) -> None:
+        """Reset tracker state."""
+        self._last_hash = None
+        self._last_content = None
+        self._last_type = None
 
 
 def copy_text(text: str, logger) -> bool:

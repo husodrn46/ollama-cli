@@ -27,7 +27,7 @@ from rich.syntax import Syntax
 from rich.table import Table
 from rich.text import Text
 
-from .clipboard import copy_text
+from .clipboard import copy_text, ClipboardTracker
 from .commands import Command, CommandRegistry, CommandHandlers, SmartCompleter
 from .logging_utils import set_log_level, setup_logging
 from .media import encode_image, paste_image_from_clipboard
@@ -91,6 +91,7 @@ class ChatApp:
         self.session_id: Optional[str] = None
         self.session_tags: List[str] = []
         self.session: Optional[PromptSession] = None
+        self.clipboard_tracker = ClipboardTracker()
 
         # Initialize refactored modules
         self.model_manager = ModelManager(
@@ -230,6 +231,9 @@ class ChatApp:
 
         while True:
             try:
+                # Clipboard monitoring
+                self._check_clipboard()
+
                 prompt_text = HTML(
                     f'<style fg="{self.theme["user"]}" bold="true">◉ SEN: </style>'
                 )
@@ -258,6 +262,9 @@ class ChatApp:
 
                 self.send_user_message(user_input)
 
+                # Auto-title generation
+                self._maybe_generate_title()
+
             except KeyboardInterrupt:
                 self.console.print()
                 continue
@@ -266,6 +273,43 @@ class ChatApp:
                 break
 
         return 0
+
+    def _check_clipboard(self) -> None:
+        """Check for clipboard changes if monitoring is enabled."""
+        if not self.config.clipboard_monitor:
+            return
+
+        change = self.clipboard_tracker.check_change(self.logger)
+        if not change:
+            return
+
+        ctype, content = change
+        if ctype == "text" and self.config.clipboard_notify:
+            preview = content[:50] + "..." if len(content) > 50 else content
+            self.console.print(
+                f"[{self.theme['accent']}]📋 Panoda yeni metin:[/] {preview}"
+            )
+            self.console.print(f"[{self.theme['muted']}]/yapistir ile kullan[/]\n")
+        elif ctype == "image" and self.config.clipboard_notify:
+            self.console.print(f"[{self.theme['accent']}]🖼️ Panoda yeni resim var[/]")
+            self.console.print(f"[{self.theme['muted']}]/paste ile kullan[/]\n")
+
+    def _maybe_generate_title(self) -> None:
+        """Generate auto-title if conditions are met."""
+        if not self.config.auto_title:
+            return
+        if self.chat_title:  # Already has a title
+            return
+
+        # Count non-system messages
+        conversation = [m for m in self.messages if m.get("role") != "system"]
+        if len(conversation) < self.config.auto_title_after + 1:
+            return
+
+        title = self.chat_engine.generate_title(self.messages)
+        if title:
+            self.chat_title = title
+            self.console.print(f"[{self.theme['muted']}]📝 Başlık: {title}[/]\n")
 
     @property
     def theme(self) -> Dict[str, str]:

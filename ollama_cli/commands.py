@@ -138,6 +138,21 @@ class SmartCompleter(Completer):
                     if option.startswith(prefix):
                         yield Completion(option, start_position=-len(prefix))
 
+            if text.startswith("/prompts "):
+                prefix = text[9:]
+                for name in self.favorites.library_prompts.keys():
+                    if name.startswith(prefix):
+                        yield Completion(name, start_position=-len(prefix))
+                for option in ["add", "remove"]:
+                    if option.startswith(prefix):
+                        yield Completion(option, start_position=-len(prefix))
+
+            if text.startswith("/clipboard "):
+                prefix = text[11:]
+                for option in ["on", "off"]:
+                    if option.startswith(prefix):
+                        yield Completion(option, start_position=-len(prefix))
+
 
 class CommandHandlers:
     """All command handlers for the chat application."""
@@ -281,6 +296,18 @@ class CommandHandlers:
         )
         registry.register(
             Command("/markdown", ("/md",), "Markdown gorunumu", None, self.cmd_markdown)
+        )
+        # Yeni özellikler
+        registry.register(
+            Command("/prompts", tuple(), "Prompt kutuphanesi", None, self.cmd_prompts)
+        )
+        registry.register(
+            Command(
+                "/yapistir", tuple(), "Panodan metin kullan", None, self.cmd_yapistir
+            )
+        )
+        registry.register(
+            Command("/clipboard", tuple(), "Clipboard izleme", None, self.cmd_clipboard)
         )
 
     # ─────────────────────────────────────────────────────────────
@@ -1286,4 +1313,177 @@ class CommandHandlers:
             return True
 
         self.console.print(f"[{self.theme['error']}]Kullanim: /markdown on|off[/]\n")
+        return True
+
+    # ─────────────────────────────────────────────────────────────
+    # Prompt Kütüphanesi
+    # ─────────────────────────────────────────────────────────────
+
+    def cmd_prompts(self, cmd: str) -> bool:
+        """Prompt kütüphanesini yönet."""
+        parts = cmd.split(maxsplit=2)
+        if len(parts) == 1:
+            # /prompts - Listeyi göster
+            self.app.ui_display.show_prompts(self.app.favorites.library_prompts)
+            return True
+
+        arg = parts[1].lower()
+
+        if arg == "add":
+            # /prompts add <isim> - Yeni prompt ekle (interaktif)
+            if len(parts) < 3:
+                self.console.print(
+                    f"[{self.theme['error']}]Kullanim: /prompts add <isim>[/]\n"
+                )
+                return True
+            name = parts[2].lower().replace(" ", "-")
+            if name in self.app.favorites.library_prompts:
+                self.console.print(f"[{self.theme['error']}]'{name}' zaten mevcut[/]\n")
+                return True
+
+            # Interaktif bilgi al
+            from rich.prompt import Prompt
+            from .models import LibraryPrompt
+
+            display_name = Prompt.ask(
+                f"[{self.theme['muted']}]Görünen isim[/]", default=name.title()
+            )
+            description = Prompt.ask(f"[{self.theme['muted']}]Açıklama[/]")
+            prompt_text = Prompt.ask(f"[{self.theme['muted']}]Prompt metni[/]")
+            category = Prompt.ask(
+                f"[{self.theme['muted']}]Kategori[/]", default="genel"
+            )
+            icon = Prompt.ask(f"[{self.theme['muted']}]Emoji[/]", default="📝")
+
+            self.app.favorites.library_prompts[name] = LibraryPrompt(
+                name=display_name,
+                description=description,
+                prompt=prompt_text,
+                category=category,
+                icon=icon,
+            )
+            save_favorites(self.app.favorites, self.app.paths, self.app.logger)
+            self.console.print(f"[{self.theme['success']}]✓ '{name}' eklendi[/]\n")
+            return True
+
+        if arg == "remove":
+            # /prompts remove <isim>
+            if len(parts) < 3:
+                self.console.print(
+                    f"[{self.theme['error']}]Kullanim: /prompts remove <isim>[/]\n"
+                )
+                return True
+            name = parts[2].lower()
+            if name not in self.app.favorites.library_prompts:
+                self.console.print(f"[{self.theme['error']}]'{name}' bulunamadi[/]\n")
+                return True
+
+            del self.app.favorites.library_prompts[name]
+            save_favorites(self.app.favorites, self.app.paths, self.app.logger)
+            self.console.print(f"[{self.theme['success']}]✓ '{name}' silindi[/]\n")
+            return True
+
+        # /prompts <isim> - Promptu kullan
+        prompt_name = arg
+        if prompt_name not in self.app.favorites.library_prompts:
+            self.console.print(
+                f"[{self.theme['error']}]Prompt bulunamadi: {prompt_name}[/]\n"
+            )
+            self.console.print(
+                f"[{self.theme['muted']}]Mevcut promptlar: {', '.join(self.app.favorites.library_prompts.keys())}[/]\n"
+            )
+            return True
+
+        prompt_entry = self.app.favorites.library_prompts[prompt_name]
+        # Sonraki girişi prompt ile başlat
+        self.console.print(
+            f"[{self.theme['accent']}]{prompt_entry.icon} {prompt_entry.name}[/]"
+        )
+        self.console.print(f"[{self.theme['muted']}]{prompt_entry.description}[/]")
+        self.console.print(
+            f"[{self.theme['primary']}]Prompt: {prompt_entry.prompt}[/]\n"
+        )
+        self.console.print(
+            f"[{self.theme['muted']}]Metninizi girin (ya da /iptal ile vazgecin):[/]\n"
+        )
+
+        # Kullanıcıdan metin al
+        try:
+            user_text = self.session.prompt(
+                HTML(f"<ansigreen>{prompt_entry.icon}</ansigreen> "),
+            )
+        except (EOFError, KeyboardInterrupt):
+            self.console.print(f"\n[{self.theme['muted']}]İptal edildi[/]\n")
+            return True
+
+        if user_text.strip().lower() == "/iptal":
+            self.console.print(f"[{self.theme['muted']}]İptal edildi[/]\n")
+            return True
+
+        # Prompt ile mesajı birleştir ve gönder
+        full_message = f"{prompt_entry.prompt}\n\n{user_text}"
+        self.app.chat_engine.send_user_message(full_message)
+        return True
+
+    def cmd_yapistir(self, cmd: str) -> bool:
+        """Panodaki metni prompt olarak kullan."""
+        try:
+            import pyperclip
+
+            text = pyperclip.paste()
+        except ImportError:
+            self.console.print(
+                f"[{self.theme['error']}]pyperclip yuklu degil. pip install pyperclip[/]\n"
+            )
+            return True
+        except Exception as e:
+            self.console.print(f"[{self.theme['error']}]Pano okunamadi: {e}[/]\n")
+            return True
+
+        if not text or not text.strip():
+            self.console.print(f"[{self.theme['error']}]Panoda metin yok[/]\n")
+            return True
+
+        # Opsiyonel prefix
+        prefix = cmd[10:].strip() if len(cmd) > 10 else ""
+        user_input = f"{prefix} {text}".strip() if prefix else text
+
+        preview_len = 100
+        preview = text[:preview_len] + "..." if len(text) > preview_len else text
+        self.console.print(
+            f"[{self.theme['muted']}]📋 Panodan ({len(text)} karakter):[/]"
+        )
+        self.console.print(f"[{self.theme['muted']}]{preview}[/]\n")
+
+        self.app.chat_engine.send_user_message(user_input)
+        return True
+
+    def cmd_clipboard(self, cmd: str) -> bool:
+        """Clipboard izlemeyi aç/kapat."""
+        parts = cmd.split()
+        if len(parts) == 1:
+            status = "açık" if self.config.clipboard_monitor else "kapalı"
+            self.console.print(f"[{self.theme['muted']}]Clipboard izleme: {status}[/]")
+            self.console.print(
+                f"[{self.theme['muted']}]Kullanım: /clipboard on|off[/]\n"
+            )
+            return True
+
+        arg = parts[1].lower()
+        if arg in ["on", "ac", "aç", "true"]:
+            self.config.clipboard_monitor = True
+            save_config(self.config, self.app.paths, self.app.logger)
+            self.console.print(
+                f"[{self.theme['success']}]✓ Clipboard izleme açıldı[/]\n"
+            )
+            return True
+        if arg in ["off", "kapat", "false"]:
+            self.config.clipboard_monitor = False
+            save_config(self.config, self.app.paths, self.app.logger)
+            self.console.print(
+                f"[{self.theme['success']}]✓ Clipboard izleme kapatıldı[/]\n"
+            )
+            return True
+
+        self.console.print(f"[{self.theme['error']}]Kullanım: /clipboard on|off[/]\n")
         return True

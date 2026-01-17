@@ -89,6 +89,47 @@ SUMMARY_PREFIX = "## Konusma Ozeti"
 DEFAULT_SUMMARY_KEEP = 6
 
 
+class StreamingStats:
+    """Rolling statistics for streaming token speed."""
+
+    def __init__(self) -> None:
+        self.start_time: float = 0
+        self.tokens: int = 0
+        self.recent_tokens: List[tuple[float, int]] = []  # (timestamp, count)
+
+    def start(self) -> None:
+        """Reset and start tracking."""
+        self.start_time = time.monotonic()
+        self.tokens = 0
+        self.recent_tokens = []
+
+    def add_tokens(self, count: int = 1) -> None:
+        """Add tokens to the counter."""
+        now = time.monotonic()
+        self.tokens += count
+        self.recent_tokens.append((now, count))
+        # Keep only last 2 seconds of data for rolling average
+        cutoff = now - 2.0
+        self.recent_tokens = [(t, c) for t, c in self.recent_tokens if t > cutoff]
+
+    def get_tps(self) -> float:
+        """Get tokens per second (rolling 2-second window)."""
+        if not self.recent_tokens:
+            return 0.0
+        window = time.monotonic() - self.recent_tokens[0][0]
+        if window <= 0:
+            return 0.0
+        total = sum(c for _, c in self.recent_tokens)
+        return total / window
+
+    def get_avg_tps(self) -> float:
+        """Get average tokens per second since start."""
+        elapsed = time.monotonic() - self.start_time
+        if elapsed <= 0:
+            return 0.0
+        return self.tokens / elapsed
+
+
 class ChatEngine:
     """Handles conversation flow, streaming, and summarization."""
 
@@ -340,6 +381,59 @@ class ChatEngine:
                     return content
         return ""
 
+    def generate_title(self, messages: List[Dict]) -> Optional[str]:
+        """Generate a short title from the first few messages."""
+        # Get non-system messages
+        conversation = [m for m in messages if m.get("role") != "system"]
+        if len(conversation) < 2:
+            return None
+
+        # Take first 3 messages
+        recent = conversation[:3]
+        context_parts = []
+        for msg in recent:
+            role = "Kullanıcı" if msg["role"] == "user" else "Asistan"
+            content = msg.get("content", "")
+            if isinstance(content, list):
+                content = "[Görsel içerik]"
+            elif len(content) > 200:
+                content = content[:200] + "..."
+            context_parts.append(f"{role}: {content}")
+
+        context = "\n".join(context_parts)
+
+        prompt = (
+            "Bu sohbet için 3-5 kelimelik kısa ve açıklayıcı bir başlık öner. "
+            "Sadece başlığı yaz, başka bir şey yazma:\n\n"
+            f"{context}"
+        )
+
+        title_model = self.config.auto_title_model or self.model
+        if not title_model:
+            return None
+
+        try:
+            response = requests.post(
+                f"{self.config.ollama_host}/api/generate",
+                json={
+                    "model": title_model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {"temperature": 0.3},
+                },
+                timeout=15,
+            )
+            response.raise_for_status()
+            title = response.json().get("response", "").strip()
+            # Clean up title - remove quotes, limit length
+            title = title.strip("\"'").strip()
+            if len(title) > 60:
+                title = title[:57] + "..."
+            return title if title else None
+        except Exception:
+            self.logger.debug("Başlık oluşturulamadı")
+            return None
+
     def chat_stream(
         self,
         model: str,
@@ -408,14 +502,26 @@ class ChatEngine:
             self.console.print(f"\n[{self.theme['error']}]Hata: {exc}[/]\n")
             return None
 
+    def _create_stream_display(self, content: str, tps: float):
+        """Create markdown display with optional TPS indicator."""
+        from rich.console import Group
+
+        md = Markdown(content, code_theme="monokai")
+        if tps > 0 and self.config.show_live_tps:
+            speed_text = Text(f"⚡ {tps:.1f} t/s", style=self.theme["muted"])
+            return Group(md, speed_text)
+        return md
+
     def _stream_with_markdown(self, response) -> tuple[str, Dict]:
-        """Stream response with live markdown rendering."""
+        """Stream response with live markdown rendering and TPS indicator."""
         full_response = ""
         data = {}
         last_update = time.monotonic()
+        stats = StreamingStats()
+        stats.start()
 
         with Live(
-            Markdown("", code_theme="monokai"),
+            self._create_stream_display("", 0),
             console=self.console,
             refresh_per_second=12,
         ) as live:
@@ -426,10 +532,13 @@ class ChatEngine:
                         if "message" in data:
                             content = data["message"].get("content", "")
                             full_response += content
+                            stats.add_tokens(1)  # Each chunk is approximately 1 token
                             now = time.monotonic()
                             if now - last_update > 0.1 or "\n" in content:
                                 live.update(
-                                    Markdown(full_response, code_theme="monokai")
+                                    self._create_stream_display(
+                                        full_response, stats.get_tps()
+                                    )
                                 )
                                 last_update = now
 
@@ -437,6 +546,7 @@ class ChatEngine:
                             break
                     except Exception:
                         continue
+            # Final update without TPS (show only markdown)
             live.update(Markdown(full_response, code_theme="monokai"))
 
         return full_response, data

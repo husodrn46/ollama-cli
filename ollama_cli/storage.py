@@ -10,9 +10,75 @@ from typing import Any, Dict, Optional
 from platformdirs import user_config_dir, user_data_dir
 from pydantic import ValidationError
 
-from .models import ConfigModel, FavoritesModel, PromptEntry, DEFAULT_PROMPT
+from .models import (
+    ConfigModel,
+    FavoritesModel,
+    PromptEntry,
+    LibraryPrompt,
+    DEFAULT_PROMPT,
+)
 
 APP_NAME = "ollama-cli-pro"
+
+# Varsayılan prompt kütüphanesi
+DEFAULT_LIBRARY_PROMPTS: Dict[str, LibraryPrompt] = {
+    "ozetle": LibraryPrompt(
+        name="Özetle",
+        description="Metni kısa ve öz şekilde özetler",
+        prompt="Bu metni kısa ve öz şekilde özetle:",
+        category="yazı",
+        icon="📋",
+    ),
+    "cevir-en": LibraryPrompt(
+        name="İngilizce Çevir",
+        description="Türkçe metni İngilizce'ye çevirir",
+        prompt="Bu metni İngilizce'ye çevir:",
+        category="çeviri",
+        icon="🌍",
+    ),
+    "cevir-tr": LibraryPrompt(
+        name="Türkçe Çevir",
+        description="İngilizce metni Türkçe'ye çevirir",
+        prompt="Bu metni Türkçe'ye çevir:",
+        category="çeviri",
+        icon="🇹🇷",
+    ),
+    "kod-acikla": LibraryPrompt(
+        name="Kod Açıkla",
+        description="Kodu satır satır açıklar",
+        prompt="Bu kodu satır satır açıkla:",
+        category="kodlama",
+        icon="💻",
+    ),
+    "hata-bul": LibraryPrompt(
+        name="Hata Bul",
+        description="Koddaki hataları ve sorunları bulur",
+        prompt="Bu kodda hata var mı? Varsa detaylı açıkla:",
+        category="kodlama",
+        icon="🐛",
+    ),
+    "yeniden-yaz": LibraryPrompt(
+        name="Yeniden Yaz",
+        description="Metni daha iyi şekilde yeniden yazar",
+        prompt="Bu metni daha iyi ve akıcı şekilde yeniden yaz:",
+        category="yazı",
+        icon="✍️",
+    ),
+    "soru-sor": LibraryPrompt(
+        name="Soru Sor",
+        description="Konu hakkında sorular üretir",
+        prompt="Bu konu hakkında 5 anlamlı soru sor:",
+        category="analiz",
+        icon="❓",
+    ),
+    "optimize-et": LibraryPrompt(
+        name="Optimize Et",
+        description="Kodu optimize eder ve iyileştirir",
+        prompt="Bu kodu optimize et ve performansını artır:",
+        category="kodlama",
+        icon="⚡",
+    ),
+}
 
 
 @dataclass(frozen=True)
@@ -129,7 +195,26 @@ def ensure_default_prompts(paths: AppPaths, logger) -> None:
 def ensure_default_favorites(paths: AppPaths, logger) -> None:
     if paths.favorites_file.exists():
         return
-    write_json(paths.favorites_file, {"favorites": {}, "templates": {}}, logger)
+    # Varsayılan library_prompts ile birlikte oluştur
+    default_prompts_data = {
+        key: p.model_dump(mode="json") for key, p in DEFAULT_LIBRARY_PROMPTS.items()
+    }
+    write_json(
+        paths.favorites_file,
+        {"favorites": {}, "templates": {}, "library_prompts": default_prompts_data},
+        logger,
+    )
+
+
+def ensure_library_prompts(favorites: FavoritesModel, paths: AppPaths, logger) -> bool:
+    """Varsayılan library_prompts yoksa ekle. True döndürürse kaydedilmeli."""
+    if favorites.library_prompts:
+        return False
+    # Library prompts boş, varsayılanları ekle
+    for key, prompt in DEFAULT_LIBRARY_PROMPTS.items():
+        favorites.library_prompts[key] = prompt
+    logger.info("Varsayılan prompt kütüphanesi eklendi")
+    return True
 
 
 def ensure_default_config(paths: AppPaths, logger) -> None:
@@ -167,6 +252,11 @@ def load_favorites(paths: AppPaths, logger) -> FavoritesModel:
     except ValidationError:
         logger.exception("Favoriler dogrulanamadi, varsayilanlar kullaniliyor")
         favorites = FavoritesModel()
+
+    # Mevcut dosyalarda library_prompts yoksa varsayılanları ekle
+    if ensure_library_prompts(favorites, paths, logger):
+        save_favorites(favorites, paths, logger)
+
     return favorites
 
 

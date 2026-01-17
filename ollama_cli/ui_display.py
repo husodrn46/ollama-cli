@@ -130,6 +130,15 @@ class UIDisplay:
                 ],
             ),
             (
+                "Prompt & Pano",
+                [
+                    ("/prompts", "Prompt kutuphanesi"),
+                    ("/prompts <isim>", "Hazir promptu kullan"),
+                    ("/yapistir", "Panodan metin kullan"),
+                    ("/clipboard", "Pano izleme ac/kapa"),
+                ],
+            ),
+            (
                 "Diger",
                 [
                     ("/retry", "Son yaniti yeniden olustur"),
@@ -206,6 +215,54 @@ class UIDisplay:
             Panel(table, title="[bold]Sablonlar[/]", border_style=self.theme["primary"])
         )
         self.console.print()
+
+    def show_prompts(self, library_prompts: Dict) -> None:
+        """Display prompt library grouped by category."""
+        if not library_prompts:
+            self.console.print(
+                f"[{self.theme['muted']}]Prompt kütüphanesi boş. /prompts add <isim>[/]\n"
+            )
+            return
+
+        # Kategorilere göre grupla
+        by_category: Dict[str, List] = {}
+        for key, prompt in library_prompts.items():
+            cat = prompt.category
+            if cat not in by_category:
+                by_category[cat] = []
+            by_category[cat].append((key, prompt))
+
+        # Her kategori için tablo oluştur
+        for category, items in sorted(by_category.items()):
+            table = Table(
+                title=f"[bold]{category.title()}[/]",
+                box=ROUNDED,
+                border_style=self.theme["primary"],
+                padding=(0, 1),
+            )
+            table.add_column("", style="white", width=3)  # Icon
+            table.add_column("Komut", style=f"bold {self.theme['accent']}")
+            table.add_column("Açıklama", style="white", max_width=40)
+            table.add_column("Prompt", style=self.theme["muted"], max_width=35)
+
+            for key, prompt in items:
+                prompt_preview = (
+                    prompt.prompt[:32] + "..."
+                    if len(prompt.prompt) > 35
+                    else prompt.prompt
+                )
+                table.add_row(prompt.icon, key, prompt.description, prompt_preview)
+
+            self.console.print(table)
+            self.console.print()
+
+        # Kullanım bilgisi
+        self.console.print(
+            f"[{self.theme['muted']}]Kullanım: /prompts <isim> - örn: /prompts ozetle[/]"
+        )
+        self.console.print(
+            f"[{self.theme['muted']}]Yeni ekle: /prompts add <isim>[/]\n"
+        )
 
     # ─────────────────────────────────────────────────────────────
     # Statistics & Tokens

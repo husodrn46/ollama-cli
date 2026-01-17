@@ -112,6 +112,15 @@ class ConfigModel(BaseModel):
     benchmark_runs: int = 1
     benchmark_timeout: int = 120
     benchmark_temperature: float = 0.2
+    # Otomatik başlık ayarları
+    auto_title: bool = True  # Otomatik başlık oluşturma
+    auto_title_after: int = 2  # Kaç mesajdan sonra başlık oluştur
+    auto_title_model: Optional[str] = None  # Başlık için özel model (None=mevcut)
+    # Clipboard izleme ayarları
+    clipboard_monitor: bool = False  # Clipboard izleme (varsayılan kapalı)
+    clipboard_notify: bool = True  # Clipboard değişikliğinde bildirim göster
+    # Streaming hız göstergesi
+    show_live_tps: bool = True  # Streaming sırasında canlı TPS göster
 
     model_config = ConfigDict(extra="allow", validate_assignment=True)
 
@@ -123,9 +132,22 @@ class TemplateEntry(BaseModel):
     model_config = ConfigDict(extra="allow")
 
 
+class LibraryPrompt(BaseModel):
+    """Prompt kütüphanesi için hazır prompt girişi."""
+
+    name: str  # "Özetle", "Kod Açıkla"
+    description: str  # "Metni özetler"
+    prompt: str  # "Bu metni kısa ve öz şekilde özetle:"
+    category: str = "genel"  # "kodlama", "yazı", "analiz", "çeviri"
+    icon: str = "📝"  # Emoji
+
+    model_config = ConfigDict(extra="allow")
+
+
 class FavoritesModel(BaseModel):
     favorites: Dict[str, str] = Field(default_factory=dict)
     templates: Dict[str, TemplateEntry] = Field(default_factory=dict)
+    library_prompts: Dict[str, LibraryPrompt] = Field(default_factory=dict)
 
     model_config = ConfigDict(extra="allow", validate_assignment=True)
 
