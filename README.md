@@ -1,10 +1,14 @@
-# Ollama CLI Pro
+# Ollama CLI
 
-Bu proje, Ollama modelleri ile terminal üzerinden etkileşim kurmak için geliştirilmiş, zengin özelliklere sahip bir komut satırı arayüzüdür (CLI).
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://python.org)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Tests](https://github.com/husodrn46/ollama-cli/actions/workflows/test.yml/badge.svg)](https://github.com/husodrn46/ollama-cli/actions/workflows/test.yml)
+
+Ollama modelleri ile terminal uzerinden etkilesim kurmak icin gelistirilmis, zengin ozelliklere sahip bir komut satiri arayuzu (CLI).
 
 ## Proje Açıklaması ve Amacı
 
-Ollama CLI Pro, yerel olarak çalışan büyük dil modelleriyle sohbet etmeyi kolaylaştıran, kullanıcı dostu ve güçlü bir araçtır. `rich` ve `prompt_toolkit` gibi kütüphaneler sayesinde modern ve interaktif bir terminal deneyimi sunar. Amacı, geliştiricilerin ve meraklıların Ollama'nın gücünü verimli bir şekilde komut satırından kullanabilmelerini sağlamaktır.
+Ollama CLI, yerel olarak çalışan büyük dil modelleriyle sohbet etmeyi kolaylaştıran, kullanıcı dostu ve güçlü bir araçtır. `rich` ve `prompt_toolkit` gibi kütüphaneler sayesinde modern ve interaktif bir terminal deneyimi sunar. Amacı, geliştiricilerin ve meraklıların Ollama'nın gücünü verimli bir şekilde komut satırından kullanabilmelerini sağlamaktır.
 
 ## Temel Özellikler
 
