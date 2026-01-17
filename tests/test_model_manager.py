@@ -409,10 +409,12 @@ class TestGetModels:
 class TestPullModel:
     """Tests for model downloading."""
 
+    @patch("ollama_cli.model_manager.Progress")
     @patch("ollama_cli.model_manager.requests.post")
     def test_pull_model_success(
         self,
         mock_post,
+        mock_progress,
         temp_home,
         mock_config,
         mock_console,
@@ -428,6 +430,15 @@ class TestPullModel:
         ]
         mock_response.raise_for_status = MagicMock()
         mock_post.return_value = mock_response
+
+        # Mock Progress context manager
+        mock_progress_instance = MagicMock()
+        mock_progress_instance.__enter__ = MagicMock(
+            return_value=mock_progress_instance
+        )
+        mock_progress_instance.__exit__ = MagicMock(return_value=False)
+        mock_progress_instance.add_task = MagicMock(return_value=0)
+        mock_progress.return_value = mock_progress_instance
 
         manager = ModelManager(
             config=mock_config,
